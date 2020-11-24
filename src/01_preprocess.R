@@ -15,18 +15,15 @@ rad_raw <- read_excel("Supplementary File 2.xlsx",
 
 growth_flight_raw <- read_excel("Supplementary File 2.xlsx",
                                 sheet = "growth",
-                                range = cell_cols("BD:BG"))
+                                range = cell_cols("K:N"))
 
-growth_post6_raw <- read_excel("Supplementary File 2.xlsx",
+growth_ground_raw <- read_excel("Supplementary File 2.xlsx",
                                sheet = "growth",
-                               range = cell_cols("R:AS"))
-
-growth_post7_raw <- read_excel("Supplementary File 2.xlsx",
-                               sheet = "growth",
-                               range = cell_cols("AT:BA"))
+                               range = cell_cols("A:J"))
 
 summary(rad_raw)
 summary(growth_flight_raw)
+summary(growth_ground_raw)
 
 # Clean
 
@@ -51,13 +48,13 @@ rad_clean <- rad_raw %>%
 growth_flight_clean <- growth_flight_raw %>% 
   slice(2:(n())) %>%
   rename(time_h = "...2",
-         relative_OD = "...4") %>% 
-  select(time_h, relative_OD) %>%
+         flight = "...4") %>% 
+  select(time_h, flight) %>%
   mutate(time_h = as.numeric(time_h),
-         relative_OD = as.numeric(relative_OD))
+         flight = as.numeric(flight))
 
-min(growth_flight_clean$time_h[growth_flight_clean$relative_OD >= 0.05])
-min(growth_flight_clean$time_h[growth_flight_clean$relative_OD >= 0.95])
+min(growth_flight_clean$time_h[growth_flight_clean$flight >= 0.05])
+min(growth_flight_clean$time_h[growth_flight_clean$flight >= 0.95])
 
 rad_clean <- rad_clean %>% 
   mutate(phase1 = ifelse(time_h <= 10, 1, 0),
@@ -66,21 +63,20 @@ rad_clean <- rad_clean %>%
                             phase1 == 0 & phase3 == 0 ~ 2,
                             phase3 == 1 ~ 3))
 
-growth_post6_clean <- growth_post6_raw %>% 
+growth_ground_clean <- growth_ground_raw %>% 
   slice(2:(n())) %>%
-  rename(time_h = "ground-control (post-flight #6)",
-         relative_OD = "...28") %>% 
-  select(time_h, relative_OD) %>%
+  rename(time_h = "...2",
+         ground1 = "...6",
+         ground2 = "...7",
+         ground3 = "...8",
+         groundm = "...9") %>% 
+  select(time_h, 
+         ground1, ground2, ground3, groundm) %>%
   mutate(time_h = as.numeric(time_h),
-         relative_OD = as.numeric(relative_OD))
-
-growth_post7_clean <- growth_post7_raw %>% 
-  slice(2:(n())) %>%
-  rename(time_h = "ground-control (post-flight #7)",
-         relative_OD = "...8") %>% 
-  select(time_h, relative_OD) %>%
-  mutate(time_h = as.numeric(time_h),
-         relative_OD = as.numeric(relative_OD))
+         ground1 = as.numeric(ground1),
+         ground2 = as.numeric(ground2),
+         ground3 = as.numeric(ground3),
+         groundm = as.numeric(groundm))
 
 # Join
 
@@ -97,23 +93,11 @@ com_imp <- com_imp %>%
 
 com_small <- filter(com_imp, !is.na(relative_OD))
 
-growth_com6 <- growth_flight_clean %>%
+growth_com <- growth_flight_clean %>%
   mutate(time_h = time_h - 4) %>% # Start point: temp => 30 Celcius
   filter(time_h >= 0) %>%
-  difference_left_join(., growth_post6_clean, by = "time_h", max_dist = 0.3) %>% # Fuzzy match by hour
-  rename(time_h = "time_h.x",
-         flight = "relative_OD.x",
-         ground = "relative_OD.y") %>%
-  select(-time_h.y) %>%
-  drop_na()
-
-growth_com7 <- growth_flight_clean %>%
-  mutate(time_h = time_h - 4) %>% # Start point: temp => 30 Celcius
-  filter(time_h >= 0) %>%
-  difference_left_join(., growth_post7_clean, by = "time_h", max_dist = 0.3) %>% # Fuzzy match by hour
-  rename(time_h = "time_h.x",
-         flight = "relative_OD.x",
-         ground = "relative_OD.y") %>%
+  difference_left_join(., growth_ground_clean, by = "time_h", max_dist = 0.25) %>% # Fuzzy match by hour
+  rename(time_h = "time_h.x") %>%
   select(-time_h.y) %>%
   drop_na()
 
@@ -124,20 +108,32 @@ rad_long <- pivot_longer(rad_clean,
                          names_to = c("type", ".value"), 
                          names_pattern = "(.+)_(.+)")
 
-growth_long6 <- pivot_longer(growth_com6, 
-                            cols = flight:ground,
-                            names_to = c("type"))
+growth_long1 <- growth_com %>%
+  select(time_h, flight, ground1) %>%
+  pivot_longer(cols = flight:ground1,
+               names_to = c("type"))
 
-growth_long7 <- pivot_longer(growth_com7, 
-                            cols = flight:ground,
-                            names_to = c("type"))
+growth_long2 <- growth_com %>%
+  select(time_h, flight, ground2) %>%
+  pivot_longer(cols = flight:ground2,
+               names_to = c("type"))
+
+growth_long3 <- growth_com %>%
+  select(time_h, flight, ground3) %>%
+  pivot_longer(cols = flight:ground3,
+               names_to = c("type"))
+
+growth_longm <- growth_com %>%
+  select(time_h, flight, groundm) %>%
+  pivot_longer(cols = flight:groundm,
+               names_to = c("type"))
 
 # Save
 
 save(rad_clean, rad_long, 
      com_small, com_imp,
-     growth_com6, growth_long6,
-     growth_com7, growth_long7,
+     growth_com, 
+     growth_long1, growth_long2, growth_long3, growth_longm,
      file = "rad.Rdata")
 
 # Plots
