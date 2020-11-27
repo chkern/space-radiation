@@ -58,7 +58,7 @@ min(growth_flight_clean$time_h[growth_flight_clean$flight >= 0.95])
 
 rad_clean <- rad_clean %>% 
   mutate(phase1 = ifelse(time_h <= 10, 1, 0),
-         phase3 = ifelse(time_h >= 60, 1, 0),
+         phase3 = ifelse(time_h >= 50, 1, 0),
          phases = case_when(phase1 == 1 ~ 1,
                             phase1 == 0 & phase3 == 0 ~ 2,
                             phase3 == 1 ~ 3))
@@ -82,7 +82,8 @@ growth_ground_clean <- growth_ground_raw %>%
 
 com_imp <- rad_clean %>%
   difference_left_join(., growth_flight_clean, by = "time_h", max_dist = 0.05) %>% # Fuzzy match by hour
-  rename(time_h = "time_h.x") %>%
+  rename(time_h = "time_h.x", 
+         relative_OD = "flight") %>%
   mutate(dub = duplicated(.$relative_OD),
          relative_OD = ifelse(dub == TRUE, NA, relative_OD)) %>%
   select(-time_h.y, -dub) 

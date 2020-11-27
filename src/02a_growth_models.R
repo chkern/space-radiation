@@ -6,13 +6,13 @@ library(nlme)
 
 load("rad.Rdata")
 
-igrowth_com <-dplyr::filter(growth_com, growth_com$time_h <= 15)
+igrowth_com <-dplyr::filter(growth_com, growth_com$time_h <= 15) # end of initial growth phase
 igrowth_longm <- dplyr::filter(growth_longm, growth_longm$time_h <= 15)
 
-growth_longm <- dplyr::filter(growth_longm, growth_longm$time_h <= 50)
-growth_long1 <- dplyr::filter(growth_long1, growth_long1$time_h <= 50)
-growth_long2 <- dplyr::filter(growth_long2, growth_long2$time_h <= 50)
-growth_long3 <- dplyr::filter(growth_long3, growth_long3$time_h <= 50)
+growth_longm <- dplyr::filter(growth_longm, growth_longm$time_h < 50 - 4) # end of growth phase
+growth_long1 <- dplyr::filter(growth_long1, growth_long1$time_h < 50 - 4)
+growth_long2 <- dplyr::filter(growth_long2, growth_long2$time_h < 50 - 4)
+growth_long3 <- dplyr::filter(growth_long3, growth_long3$time_h < 50 - 4)
 
 # Initial [exponential] growth (flight vs. ground control average)
 
