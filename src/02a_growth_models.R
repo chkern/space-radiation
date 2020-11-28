@@ -19,12 +19,16 @@ growth_long3 <- dplyr::filter(growth_long3, growth_long3$time_h < 50 - 4)
 igm_f <- nls(flight ~ I(c * exp(k*time_h)), # Flight
              data = igrowth_com, 
              start = list(c = 0.05, k = 0.15))
+sink("igm_f.txt")
 summary(igm_f)
+sink()
 
 igm_gm <- nls(groundm ~ I(c * exp(k*time_h)), # Ground
               data = igrowth_com, 
               start = list(c = 0.05, k = 0.15))
+sink("igm_gm.txt")
 summary(igm_gm)
+sink()
 
 igrowth_com$preds_f <- predict(igm_f, igrowth_com)
 igrowth_com$preds_g <- predict(igm_gm, igrowth_com)
@@ -35,6 +39,7 @@ ggplot(igrowth_com) +
   geom_line(aes(x = time_h, y = preds_f), color = "#F8766D") +
   geom_line(aes(x = time_h, y = preds_g), color = "#00BFC4") +
   labs(y = "relative OD" , x = "Time (in hours)")
+ggsave("gp1.png", width = 10, height = 7)
 
 igm_m1 <- gnls(value ~ c * exp(k*time_h), # Joint model
                data = igrowth_longm,
@@ -56,6 +61,7 @@ ggplot(igrowth_longm) +
   geom_line(aes(x = time_h, y = preds, color = type)) +
   theme(legend.title = element_blank()) +
   labs(y = "relative OD" , x = "Time (in hours)")
+ggsave("gp2.png", width = 10, height = 7)
 
 # Full [logistic] growth (flight vs. ground control average)
 
@@ -77,6 +83,7 @@ ggplot(growth_longm) +
   geom_line(aes(x = time_h, y = preds, color = type)) +
   theme(legend.title = element_blank()) +
   labs(y = "relative OD" , x = "Time (in hours)")
+ggsave("gp3.png", width = 10, height = 7)
 
 # Full [logistic] growth (flight vs. ground control 1)
 
