@@ -81,7 +81,7 @@ growth_ground_clean <- growth_ground_raw %>%
 # Join
 
 com_imp <- rad_clean %>%
-  difference_left_join(., growth_flight_clean, by = "time_h", max_dist = 0.05) %>% # Fuzzy match by hour
+  difference_left_join(., growth_flight_clean, by = "time_h", max_dist = 0.025) %>% # Fuzzy match by hour
   rename(time_h = "time_h.x", 
          relative_OD = "flight") %>%
   mutate(dub = duplicated(.$relative_OD),
@@ -182,7 +182,7 @@ rad_long %>%
   ggplot(aes(x = time_h, y = log(g), color = type)) +
   geom_smooth(method = "loess", se = FALSE, span = 0.25) + 
   geom_vline(xintercept = 10, linetype = "dotted") + 
-  geom_vline(xintercept = 60, linetype = "dotted") +
+  geom_vline(xintercept = 50, linetype = "dotted") +
   coord_cartesian(ylim=c(3.75, 4.5)) +
   theme(legend.title = element_blank()) +
   xlab("Time (in hours)")
@@ -193,7 +193,7 @@ rad_clean %>%
   ggplot(aes(x = time_h, y = delta)) +
   geom_smooth(method = "loess", se = TRUE, span = 0.7) +
   geom_vline(xintercept = 10, linetype = "dotted") + 
-  geom_vline(xintercept = 60, linetype = "dotted") +
+  geom_vline(xintercept = 50, linetype = "dotted") +
   theme(legend.title = element_blank()) +
   ylab("g(ctrl) - g(exp)") +
   xlab("Time (in hours)")
@@ -239,7 +239,7 @@ com_small %>%
   ggplot() +
   geom_line(aes(x = time_h, y = relative_OD)) +
   geom_vline(xintercept = 10, linetype = "dotted") + 
-  geom_vline(xintercept = 60, linetype = "dotted") +
+  geom_vline(xintercept = 50, linetype = "dotted") +
   ylab("Relative optical density") +
   xlab("Time (in hours)")
 
@@ -265,7 +265,7 @@ com_imp %>%
 ggsave("p12.png", width = 10, height = 7)
 
 com_imp %>%
-  filter(time_h <= 60) %>%
+  filter(phases == 2) %>%
   select(time_h, relative_OD_imp1, delta_total) %>%
   ggpairs(lower = list(continuous = wrap("points", alpha = 0.3, size = 0.1)),
           diag = list(continuous = wrap("densityDiag")),
