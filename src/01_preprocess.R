@@ -95,8 +95,6 @@ com_imp <- com_imp %>%
 com_small <- filter(com_imp, !is.na(relative_OD))
 
 growth_com <- growth_flight_clean %>%
-  mutate(time_h = time_h - 4) %>% # Start point: temp => 30 Celcius
-  filter(time_h >= 0) %>%
   difference_left_join(., growth_ground_clean, by = "time_h", max_dist = 0.25) %>% # Fuzzy match by hour
   rename(time_h = "time_h.x") %>%
   select(-time_h.y) %>%
