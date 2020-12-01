@@ -50,7 +50,9 @@ ggplot(igrowth_com) +
   geom_line(aes(x = time_h, y = preds_f), color = "#F8766D") +
   geom_line(aes(x = time_h, y = preds_g), color = "#00BFC4") +
   labs(y = "relative OD") +
-  scale_x_continuous("Time (in hours, ground)", sec.axis = sec_axis(~ . + 4, name = "Time (in hours, flight)"))
+  scale_x_continuous("Time (in hours, ground)", 
+                     sec.axis = sec_axis(~ . + 4, name = "Time (in hours, flight)")) +
+  theme(text = element_text(size = 13))
 
 ggsave("gp1.png", width = 7, height = 7)
 
@@ -74,7 +76,8 @@ ggplot(growth_longm) +
   geom_line(aes(x = time_h, y = preds, color = type)) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
-                       labels = c("Flight", "Ground (Average)"))
+                       labels = c("Flight", "Ground \n (Average)")) +
+  theme(text = element_text(size = 13))
 
 ggsave("gp2.png", width = 9, height = 7)
 

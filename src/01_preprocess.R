@@ -175,7 +175,7 @@ rad_long %>%
   scale_color_discrete(name = "",
                        labels = c("Control", "Exp."))
 
-ggsave("p04.png", width = 10, height = 7)
+ggsave("p04.png", width = 11, height = 7)
 
 rad_long %>%
   ggplot(aes(x = time_h, y = log(g), color = type)) +
