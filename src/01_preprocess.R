@@ -170,9 +170,10 @@ rad_long %>%
   ggplot(aes(x = time_h, y = log(g), color = type)) +
   geom_line(alpha = 0.5) +
   geom_smooth(method = "lm", se = FALSE) + 
-  theme(legend.title = element_blank()) +
-  xlab("Time (in hours)") +
-  facet_grid(~ phases, scales = "free_x")
+  labs(x = "Time (in hours)", y = "log(radiation)") +
+  facet_grid(~ phases, scales = "free_x") +
+  scale_color_discrete(name = "",
+                       labels = c("Control", "Exp."))
 
 ggsave("p04.png", width = 10, height = 7)
 
@@ -182,8 +183,9 @@ rad_long %>%
   geom_vline(xintercept = 10, linetype = "dotted") + 
   geom_vline(xintercept = 50, linetype = "dotted") +
   coord_cartesian(ylim=c(3.75, 4.5)) +
-  theme(legend.title = element_blank()) +
-  xlab("Time (in hours)")
+  labs(x = "Time (in hours)", y = "log(radiation)")  +
+  scale_color_discrete(name = "",
+                       labels = c("Control", "Exp."))
 
 ggsave("p05.png", width = 10, height = 7)
 
