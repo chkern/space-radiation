@@ -52,7 +52,7 @@ ggplot(igrowth_com) +
   labs(y = "relative OD") +
   scale_x_continuous("Time (in hours, ground)", 
                      sec.axis = sec_axis(~ . + 4, name = "Time (in hours, flight)")) +
-  theme(text = element_text(size = 13))
+  theme(text = element_text(size = 17))
 
 ggsave("gp1.png", width = 7, height = 7)
 
@@ -77,7 +77,7 @@ ggplot(growth_longm) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
                        labels = c("Flight", "Ground \n (Average)")) +
-  theme(text = element_text(size = 13))
+  theme(text = element_text(size = 17))
 
 ggsave("gp2.png", width = 9, height = 7)
 
@@ -94,6 +94,18 @@ jgm_g12 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Test for difference
 summary(jgm_g12)$tTable
 jgm_g12t <- summary(jgm_g12)$tTable
 
+growth_long1$preds <- predict(jgm_g12, data = growth_long1)
+
+ggplot(growth_long1) +
+  geom_point(aes(x = time_h, y = value, color = type)) +
+  geom_line(aes(x = time_h, y = preds, color = type)) +
+  labs(y = "relative OD" , x = "Time (in hours)") +
+  scale_color_discrete(name = "",
+                       labels = c("Flight", "Ground \n (Average)")) +
+  theme(text = element_text(size = 17))
+
+ggsave("gp3.png", width = 9, height = 7)
+
 # Full [logistic] growth (flight vs. ground control 2)
 
 jgm_g21 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Joint model
@@ -107,6 +119,18 @@ jgm_g22 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Test for difference
 summary(jgm_g22)$tTable
 jgm_g22t <- summary(jgm_g22)$tTable
 
+growth_long2$preds <- predict(jgm_g22, data = growth_long2)
+
+ggplot(growth_long2) +
+  geom_point(aes(x = time_h, y = value, color = type)) +
+  geom_line(aes(x = time_h, y = preds, color = type)) +
+  labs(y = "relative OD" , x = "Time (in hours)") +
+  scale_color_discrete(name = "",
+                       labels = c("Flight", "Ground \n (Average)")) +
+  theme(text = element_text(size = 17))
+
+ggsave("gp4.png", width = 9, height = 7)
+
 # Full [logistic] growth (flight vs. ground control 3)
 
 jgm_g31 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Joint model
@@ -119,6 +143,18 @@ jgm_g32 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Test for difference
                 data = growth_long3)
 summary(jgm_g32)$tTable
 jgm_g32t <- summary(jgm_g32)$tTable
+
+growth_long3$preds <- predict(jgm_g32, data = growth_long3)
+
+ggplot(growth_long3) +
+  geom_point(aes(x = time_h, y = value, color = type)) +
+  geom_line(aes(x = time_h, y = preds, color = type)) +
+  labs(y = "relative OD" , x = "Time (in hours)") +
+  scale_color_discrete(name = "",
+                       labels = c("Flight", "Ground \n (Average)")) +
+  theme(text = element_text(size = 17))
+
+ggsave("gp5.png", width = 9, height = 7)
 
 n <- cbind(nrow(growth_longm), nrow(growth_long1), nrow(growth_long2), nrow(growth_long3))
 aic <- round(cbind(AIC(jgm_m2), AIC(jgm_g12), AIC(jgm_g22), AIC(jgm_g32)), 3)

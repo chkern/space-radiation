@@ -137,6 +137,9 @@ save(rad_clean, rad_long,
 
 # Plots
 
+rad_long$fphases <- factor(rad_long$phases)
+levels(rad_long$fphases) <- c("Phase 1", "Phase 2", "Phase 3")
+
 rad_long %>%
   ggplot(aes(y = log(g), x = type, color = type)) +
   geom_boxplot(outlier.size = 0.1, outlier.colour = "gray", notch = TRUE) +
@@ -171,9 +174,10 @@ rad_long %>%
   geom_line(alpha = 0.5) +
   geom_smooth(method = "lm", se = FALSE) + 
   labs(x = "Time (in hours)", y = "log(radiation)") +
-  facet_grid(~ phases, scales = "free_x") +
+  facet_grid(~ fphases, scales = "free_x") +
   scale_color_discrete(name = "",
-                       labels = c("Control", "Exp."))
+                       labels = c("Control", "Exp.")) +
+  theme(text = element_text(size = 15))
 
 ggsave("p04.png", width = 11, height = 7)
 
