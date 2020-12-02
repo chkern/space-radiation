@@ -45,16 +45,20 @@ igrowth_com$preds_f <- predict(igm_f, igrowth_com)
 igrowth_com$preds_g <- predict(igm_gm, igrowth_com)
 
 ggplot(igrowth_com) +
-  geom_point(aes(x = time_h, y = flight), color = "#F8766D") +
-  geom_point(aes(x = time_h, y = groundm), color = "#00BFC4") +
-  geom_line(aes(x = time_h, y = preds_f), color = "#F8766D") +
-  geom_line(aes(x = time_h, y = preds_g), color = "#00BFC4") +
+  geom_point(aes(x = time_h, y = flight, color = "#F8766D")) +
+  geom_point(aes(x = time_h, y = groundm, color = "#00BFC4")) +
+  geom_line(aes(x = time_h, y = preds_f, color = "#F8766D")) +
+  geom_line(aes(x = time_h, y = preds_g, color = "#00BFC4")) +
   labs(y = "relative OD") +
   scale_x_continuous("Time (in hours, ground)", 
                      sec.axis = sec_axis(~ . + 4, name = "Time (in hours, flight)")) +
-  theme(text = element_text(size = 17))
+  scale_colour_manual(name = "", 
+                      values = c("#F8766D" = "#F8766D", "#00BFC4" = "#00BFC4"), 
+                      breaks = c("#F8766D", "#00BFC4"),
+                      labels = c("Flight", "Ground \n (Average)")) +
+  theme(text = element_text(size = 18))
 
-ggsave("gp1.png", width = 7, height = 7)
+ggsave("gp1.png", width = 9, height = 7)
 
 # Full [logistic] growth (flight vs. ground control average)
 
@@ -77,7 +81,7 @@ ggplot(growth_longm) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
                        labels = c("Flight", "Ground \n (Average)")) +
-  theme(text = element_text(size = 17))
+  theme(text = element_text(size = 18))
 
 ggsave("gp2.png", width = 9, height = 7)
 
@@ -102,7 +106,7 @@ ggplot(growth_long1) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
                        labels = c("Flight", "Ground \n (Average)")) +
-  theme(text = element_text(size = 17))
+  theme(text = element_text(size = 18))
 
 ggsave("gp3.png", width = 9, height = 7)
 
@@ -127,7 +131,7 @@ ggplot(growth_long2) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
                        labels = c("Flight", "Ground \n (Average)")) +
-  theme(text = element_text(size = 17))
+  theme(text = element_text(size = 18))
 
 ggsave("gp4.png", width = 9, height = 7)
 
@@ -152,7 +156,7 @@ ggplot(growth_long3) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
                        labels = c("Flight", "Ground \n (Average)")) +
-  theme(text = element_text(size = 17))
+  theme(text = element_text(size = 18))
 
 ggsave("gp5.png", width = 9, height = 7)
 

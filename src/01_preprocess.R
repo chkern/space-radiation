@@ -171,8 +171,8 @@ ggsave("p03.png", width = 10, height = 7)
 
 rad_long %>%
   ggplot(aes(x = time_h, y = log(g), color = type)) +
-  geom_line(alpha = 0.5) +
-  geom_smooth(method = "lm", se = FALSE) + 
+  geom_line(alpha = 0.7, size = 0.3) +
+  # geom_smooth(method = "lm", se = FALSE) + 
   labs(x = "Time (in hours)", y = "log(radiation)") +
   facet_grid(~ fphases, scales = "free_x") +
   scale_color_discrete(name = "",
