@@ -15,11 +15,11 @@ rad_raw <- read_excel("Supplementary File 2.xlsx",
 
 growth_flight_raw <- read_excel("Supplementary File 2.xlsx",
                                 sheet = "growth",
-                                range = cell_cols("K:N"))
+                                range = cell_cols("AD:AG"))
 
 growth_ground_raw <- read_excel("Supplementary File 2.xlsx",
                                sheet = "growth",
-                               range = cell_cols("A:J"))
+                               range = cell_cols("A:AC"))
 
 summary(rad_raw)
 summary(growth_flight_raw)
@@ -66,10 +66,10 @@ rad_clean <- rad_clean %>%
 growth_ground_clean <- growth_ground_raw %>% 
   slice(2:(n())) %>%
   rename(time_h = "...2",
-         ground1 = "...6",
-         ground2 = "...7",
-         ground3 = "...8",
-         groundm = "...9") %>% 
+         ground1 = "...7",
+         ground2 = "...15",
+         ground3 = "...25",
+         groundm = "...28") %>% 
   select(time_h, 
          ground1, ground2, ground3, groundm) %>%
   mutate(time_h = as.numeric(time_h),

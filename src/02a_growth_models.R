@@ -7,38 +7,95 @@ library(stargazer)
 
 load("rad.Rdata")
 
-growth_temp <- growth_com %>%
+growth_tempg2 <- growth_com %>%
+  select(time_h, ground2) %>%
+  mutate(time_h = time_h - 5.5) %>%
+  filter(time_h >= 0)
+
+growth_tempg3 <- growth_com %>%
+  select(time_h, ground3) %>%
+  mutate(time_h = time_h - 2.5) %>%
+  filter(time_h >= 0)
+
+growth_tempf <- growth_com %>%
   select(time_h, flight) %>%
-  mutate(time_h = time_h - 4) %>%
+  mutate(time_h = time_h - 5) %>%
   filter(time_h >= 0)
 
 growth_shift <- growth_com %>%
-  select(time_h, ground1, ground2, ground3, groundm) %>%
-  difference_left_join(., growth_temp, by = "time_h", max_dist = 0.001) %>%
+  select(time_h, ground1, groundm) %>%
+  difference_left_join(., growth_tempg2, by = "time_h", max_dist = 0.01) %>%
   rename(time_h = "time_h.x") %>%
   select(-time_h.y)
 
-igrowth_com <- dplyr::filter(growth_shift, growth_shift$time_h <= 15) # exponential growth phases (4 - 19h, 0 - 15h)
+growth_shift <- growth_shift %>%
+  select(time_h, ground1, ground2, groundm) %>%
+  difference_left_join(., growth_tempg3, by = "time_h", max_dist = 0.01) %>%
+  rename(time_h = "time_h.x") %>%
+  select(-time_h.y)
 
-growth_longm <- dplyr::filter(growth_longm, growth_longm$time_h < 50) # end of growth phase
-growth_long1 <- dplyr::filter(growth_long1, growth_long1$time_h < 50)
-growth_long2 <- dplyr::filter(growth_long2, growth_long2$time_h < 50)
-growth_long3 <- dplyr::filter(growth_long3, growth_long3$time_h < 50)
+growth_shift <- growth_shift %>%
+  select(time_h, ground1, ground2, ground3, groundm) %>%
+  difference_left_join(., growth_tempf, by = "time_h", max_dist = 0.01) %>%
+  rename(time_h = "time_h.x") %>%
+  select(-time_h.y)
 
-# Initial [exponential] growth (flight vs. ground control average)
+# growth_shift$means <- rowMeans(growth_shift[,2:4])
 
-igm_f <- nls(flight ~ I(c * exp(k*time_h)), # Flight
+igrowth_com <- dplyr::filter(growth_shift, growth_shift$time_h <= 15) # exponential growth phases (5 - 20h flight)
+
+growth_longm <- growth_shift %>% # growth phase (5.5 - 50h flight)
+  select(time_h, flight, groundm) %>%
+  filter(time_h < 45) %>%
+  pivot_longer(cols = flight:groundm, names_to = c("type")) %>%
+  drop_na()
+
+growth_long1 <- growth_shift %>% # growth phase (5 - 50h flight, 0 - 45h ground1)
+  select(time_h, flight, ground1) %>%
+  filter(time_h < 45) %>%
+  pivot_longer(cols = flight:ground1, names_to = c("type")) %>%
+  drop_na()
+
+growth_long2 <- growth_shift %>% # growth phase (5 - 50h flight, 5.5 - 50.5h ground2)
+  select(time_h, flight, ground2) %>%
+  filter(time_h < 45) %>%
+  pivot_longer(cols = flight:ground2, names_to = c("type")) %>%
+  drop_na()
+
+growth_long3 <- growth_shift %>% # growth phase (5 - 50h flight, 2.5 - 47.5 ground3)
+  select(time_h, flight, ground3) %>%
+  filter(time_h < 45) %>%
+  pivot_longer(cols = flight:ground3, names_to = c("type")) %>%
+  drop_na()
+
+# Initial [exponential / power] growth (flight vs. ground control average)
+
+igm_f <- nls(flight ~ I(c * exp(k*time_h)), # Flight exponential
              data = igrowth_com, 
-             start = list(c = 0.05, k = 0.15))
+             start = list(c = 0.05, k = 0.1))
 sink("igm_f.txt")
 summary(igm_f)
 sink()
 
-igm_gm <- nls(groundm ~ I(c * exp(k*time_h)), # Ground
+igm_fp <- nls(flight ~ a * time_h^b, # Flight power
+             data = igrowth_com, 
+             start = list(a = 0.5, b = 2))
+sink("igm_fp.txt")
+summary(igm_fp)
+sink()
+
+igm_gm <- nls(groundm ~ I(c * exp(k*time_h)), # Ground exponential
               data = igrowth_com, 
-              start = list(c = 0.05, k = 0.15))
+              start = list(c = 0.05, k = 0.1))
 sink("igm_gm.txt")
 summary(igm_gm)
+sink()
+
+igm_gmp <- nls(groundm ~ a * time_h^b, # Ground power
+              data = igrowth_com, 
+              start = list(a = 0.5, b = 2))
+sink("igm_gmp.txt")
+summary(igm_gmp)
 sink()
 
 igrowth_com$preds_f <- predict(igm_f, igrowth_com)
@@ -50,15 +107,38 @@ ggplot(igrowth_com) +
   geom_line(aes(x = time_h, y = preds_f, color = "#F8766D")) +
   geom_line(aes(x = time_h, y = preds_g, color = "#00BFC4")) +
   labs(y = "relative OD") +
-  scale_x_continuous("Time (in hours, ground)", 
-                     sec.axis = sec_axis(~ . + 4, name = "Time (in hours, flight)")) +
+  scale_x_continuous("Time (in hours, flight)", 
+                     labels = c("5", "10", "15", "20")) +
   scale_colour_manual(name = "", 
                       values = c("#F8766D" = "#F8766D", "#00BFC4" = "#00BFC4"), 
                       breaks = c("#F8766D", "#00BFC4"),
                       labels = c("Flight", "Ground \n (Average)")) +
+  annotate(geom = "text", x = 3.75, y = 0.65, label="y = 0.046*exp(0.176*hour)", color="#F8766D", size = 6) +
+  annotate(geom = "text", x = 3.75, y = 0.615, label="y = 0.057*exp(0.147*hour)", color="#00BFC4", size = 6) +
   theme(text = element_text(size = 17))
 
-ggsave("gp1.png", width = 9, height = 7)
+ggsave("gp1a.png", width = 9, height = 7)
+
+igrowth_com$preds_fp <- predict(igm_fp, igrowth_com)
+igrowth_com$preds_gp <- predict(igm_gmp, igrowth_com)
+
+ggplot(igrowth_com) +
+  geom_point(aes(x = time_h, y = flight, color = "#F8766D")) +
+  geom_point(aes(x = time_h, y = groundm, color = "#00BFC4")) +
+  geom_line(aes(x = time_h, y = preds_fp, color = "#F8766D")) +
+  geom_line(aes(x = time_h, y = preds_gp, color = "#00BFC4")) +
+  labs(y = "relative OD") +
+  scale_x_continuous("Time (in hours, flight)", 
+                     labels = c("5", "10", "15", "20")) +
+  scale_colour_manual(name = "", 
+                      values = c("#F8766D" = "#F8766D", "#00BFC4" = "#00BFC4"), 
+                      breaks = c("#F8766D", "#00BFC4"),
+                      labels = c("Flight", "Ground \n (Average)")) +
+  annotate(geom = "text", x = 2.75, y = 0.585, label="y == 0.006*hour^1.696", color="#F8766D", size = 6, parse = T) +
+  annotate(geom = "text", x = 2.75, y = 0.55, label="y == 0.014*hour^1.301", color="#00BFC4", size = 6, parse = T) +
+  theme(text = element_text(size = 17))
+
+ggsave("gp1b.png", width = 9, height = 7)
 
 # Full [logistic] growth (flight vs. ground control average)
 
@@ -68,7 +148,7 @@ summary(jgm_m1)$tTable
 
 jgm_m2 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Test for differences in slope
                params = list(Asym ~ 1, xmid ~ type, scal ~ type),
-               start = list(Asym = c(0.95), xmid = c(15, 15), scal = c(4.5, 4.5)),
+               start = list(Asym = c(0.9), xmid = c(14, 14), scal = c(4.5, 4.5)),
                data = growth_longm)
 summary(jgm_m2)$tTable
 jgm_m2t <- summary(jgm_m2)$tTable
@@ -81,6 +161,9 @@ ggplot(growth_longm) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
                        labels = c("Flight", "Ground \n (Average)")) +
+  scale_x_continuous("Time (in hours, flight)", 
+                     breaks = c(0, 10, 20, 30, 40),
+                     labels = c("5", "15", "25", "35", "45")) +
   theme(text = element_text(size = 20))
 
 ggsave("gp2.png", width = 9, height = 7)
@@ -93,7 +176,7 @@ summary(jgm_g11)$tTable
 
 jgm_g12 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Test for differences in slope
                 params = list(Asym ~ 1, xmid ~ type, scal ~ type),
-                start = list(Asym = c(0.95), xmid = c(15, 15), scal = c(4.5, 4.5)),
+                start = list(Asym = c(0.9), xmid = c(14, 14), scal = c(4.5, 4.5)),
                 data = growth_long1)
 summary(jgm_g12)$tTable
 jgm_g12t <- summary(jgm_g12)$tTable
@@ -106,6 +189,9 @@ ggplot(growth_long1) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
                        labels = c("Flight", "Ground \n (1)")) +
+  scale_x_continuous("Time (in hours, flight)", 
+                     breaks = c(0, 10, 20, 30, 40),
+                     labels = c("5", "15", "25", "35", "45")) +
   theme(text = element_text(size = 20))
 
 ggsave("gp3.png", width = 9, height = 7)
@@ -118,7 +204,7 @@ summary(jgm_g21)$tTable
 
 jgm_g22 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Test for differences in slope
                 params = list(Asym ~ 1, xmid ~ type, scal ~ type),
-                start = list(Asym = c(0.95), xmid = c(15, 15), scal = c(4.5, 4.5)),
+                start = list(Asym = c(0.9), xmid = c(14, 14), scal = c(4.5, 4.5)),
                 data = growth_long2)
 summary(jgm_g22)$tTable
 jgm_g22t <- summary(jgm_g22)$tTable
@@ -131,6 +217,9 @@ ggplot(growth_long2) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
                        labels = c("Flight", "Ground \n (2)")) +
+  scale_x_continuous("Time (in hours, flight)", 
+                     breaks = c(0, 10, 20, 30, 40),
+                     labels = c("5", "15", "25", "35", "45")) +
   theme(text = element_text(size = 20))
 
 ggsave("gp4.png", width = 9, height = 7)
@@ -143,7 +232,7 @@ summary(jgm_g31)$tTable
 
 jgm_g32 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Test for differences in slope
                 params = list(Asym ~ 1, xmid ~ type, scal ~ type),
-                start = list(Asym = c(0.95), xmid = c(15, 15), scal = c(4.5, 4.5)),
+                start = list(Asym = c(0.9), xmid = c(14, 14), scal = c(4.5, 4.5)),
                 data = growth_long3)
 summary(jgm_g32)$tTable
 jgm_g32t <- summary(jgm_g32)$tTable
@@ -156,6 +245,9 @@ ggplot(growth_long3) +
   labs(y = "relative OD" , x = "Time (in hours)") +
   scale_color_discrete(name = "",
                        labels = c("Flight", "Ground \n (3)")) +
+  scale_x_continuous("Time (in hours, flight)", 
+                     breaks = c(0, 10, 20, 30, 40),
+                     labels = c("5", "15", "25", "35", "45")) +
   theme(text = element_text(size = 20))
 
 ggsave("gp5.png", width = 9, height = 7)
