@@ -44,6 +44,11 @@ growth_shift <- growth_shift %>%
 
 igrowth_com <- dplyr::filter(growth_shift, growth_shift$time_h <= 15) # exponential growth phases (5 - 20h flight)
 
+igrowth_long <- igrowth_com %>% # exponential growth phases (5 - 20h flight)
+  select(time_h, ground1, ground2, ground3) %>%
+  pivot_longer(cols = ground1:ground3, names_to = c("type")) %>%
+  drop_na()
+
 growth_longm <- growth_shift %>% # growth phase (5.5 - 50h flight)
   select(time_h, flight, groundm) %>%
   filter(time_h < 45) %>%
@@ -98,14 +103,31 @@ sink("igm_gmp.txt")
 summary(igm_gmp)
 sink()
 
+igm_gmc <- nls(value ~ I(c * exp(k*time_h)), # Ground combined exponential
+              data = igrowth_long, 
+              start = list(c = 0.05, k = 0.1))
+sink("igm_gmc.txt")
+summary(igm_gmc)
+confint(igm_gmc)
+sink()
+
+igm_gmcp <- nls(value ~ a * time_h^b, # Ground combined power
+               data = igrowth_long, 
+               start = list(a = 0.5, b = 2))
+sink("igm_gmcp.txt")
+summary(igm_gmcp)
+confint(igm_gmcp)
+sink()
+
 igrowth_com$preds_f <- predict(igm_f, igrowth_com)
 igrowth_com$preds_g <- predict(igm_gm, igrowth_com)
+igrowth_com$preds_gc <- predict(igm_gmc, igrowth_com)
 
 ggplot(igrowth_com) +
   geom_point(aes(x = time_h, y = flight, color = "#F8766D")) +
   geom_point(aes(x = time_h, y = groundm, color = "#00BFC4")) +
   geom_line(aes(x = time_h, y = preds_f, color = "#F8766D")) +
-  geom_line(aes(x = time_h, y = preds_g, color = "#00BFC4")) +
+  geom_line(aes(x = time_h, y = preds_gc, color = "#00BFC4")) +
   labs(y = "relative OD") +
   scale_x_continuous("Time (in hours, flight)", 
                      labels = c("5", "10", "15", "20")) +
@@ -114,19 +136,20 @@ ggplot(igrowth_com) +
                       breaks = c("#F8766D", "#00BFC4"),
                       labels = c("Flight", "Ground \n (Average)")) +
   annotate(geom = "text", x = 3.75, y = 0.65, label="y = 0.046*exp(0.176*hour)", color="#F8766D", size = 6) +
-  annotate(geom = "text", x = 3.75, y = 0.615, label="y = 0.057*exp(0.147*hour)", color="#00BFC4", size = 6) +
+  annotate(geom = "text", x = 3.75, y = 0.615, label="y = 0.057*exp(0.150*hour)", color="#00BFC4", size = 6) +
   theme(text = element_text(size = 17))
 
 ggsave("gp1a.png", width = 9, height = 7)
 
 igrowth_com$preds_fp <- predict(igm_fp, igrowth_com)
 igrowth_com$preds_gp <- predict(igm_gmp, igrowth_com)
+igrowth_com$preds_gpc <- predict(igm_gmcp, igrowth_com)
 
 ggplot(igrowth_com) +
   geom_point(aes(x = time_h, y = flight, color = "#F8766D")) +
   geom_point(aes(x = time_h, y = groundm, color = "#00BFC4")) +
   geom_line(aes(x = time_h, y = preds_fp, color = "#F8766D")) +
-  geom_line(aes(x = time_h, y = preds_gp, color = "#00BFC4")) +
+  geom_line(aes(x = time_h, y = preds_gpc, color = "#00BFC4")) +
   labs(y = "relative OD") +
   scale_x_continuous("Time (in hours, flight)", 
                      labels = c("5", "10", "15", "20")) +
@@ -135,7 +158,7 @@ ggplot(igrowth_com) +
                       breaks = c("#F8766D", "#00BFC4"),
                       labels = c("Flight", "Ground \n (Average)")) +
   annotate(geom = "text", x = 2.75, y = 0.585, label="y == 0.006*hour^1.696", color="#F8766D", size = 6, parse = T) +
-  annotate(geom = "text", x = 2.75, y = 0.55, label="y == 0.014*hour^1.301", color="#00BFC4", size = 6, parse = T) +
+  annotate(geom = "text", x = 2.75, y = 0.55, label="y == 0.014*hour^1.319", color="#00BFC4", size = 6, parse = T) +
   theme(text = element_text(size = 17))
 
 ggsave("gp1b.png", width = 9, height = 7)
