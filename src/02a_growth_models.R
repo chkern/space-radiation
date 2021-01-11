@@ -42,14 +42,14 @@ growth_shift <- growth_shift %>%
 
 # growth_shift$means <- rowMeans(growth_shift[,2:4])
 
-igrowth_com <- dplyr::filter(growth_shift, growth_shift$time_h <= 15) # exponential growth phases (5 - 20h flight)
+igrowth_com <- dplyr::filter(growth_shift, growth_shift$time_h <= 10) # exponential growth phases (5 - 15h flight)
 
-igrowth_long <- igrowth_com %>% # exponential growth phases (5 - 20h flight)
+igrowth_long <- igrowth_com %>% # exponential growth phases (5 - 15h flight)
   select(time_h, ground1, ground2, ground3) %>%
   pivot_longer(cols = ground1:ground3, names_to = c("type")) %>%
   drop_na()
 
-growth_longm <- growth_shift %>% # growth phase (5.5 - 50h flight)
+growth_longm <- growth_shift %>% # growth phase (5 - 50h flight)
   select(time_h, flight, groundm) %>%
   filter(time_h < 45) %>%
   pivot_longer(cols = flight:groundm, names_to = c("type")) %>%
@@ -130,13 +130,13 @@ ggplot(igrowth_com) +
   geom_line(aes(x = time_h, y = preds_gc, color = "#00BFC4")) +
   labs(y = "relative OD") +
   scale_x_continuous("Time (in hours, flight)", 
-                     labels = c("5", "10", "15", "20")) +
+                     labels = c("5", "7.5", "10", "12.5", "15")) +
   scale_colour_manual(name = "", 
                       values = c("#F8766D" = "#F8766D", "#00BFC4" = "#00BFC4"), 
                       breaks = c("#F8766D", "#00BFC4"),
                       labels = c("Flight", "Ground \n (Average)")) +
-  annotate(geom = "text", x = 3.75, y = 0.65, label="y = 0.046*exp(0.176*hour)", color="#F8766D", size = 6) +
-  annotate(geom = "text", x = 3.75, y = 0.615, label="y = 0.057*exp(0.150*hour)", color="#00BFC4", size = 6) +
+  annotate(geom = "text", x = 2.5, y = 0.375, label="y = 0.017*exp(0.299*hour)", color="#F8766D", size = 6) +
+  annotate(geom = "text", x = 2.5, y = 0.35, label="y = 0.033*exp(0.226*hour)", color="#00BFC4", size = 6) +
   theme(text = element_text(size = 17))
 
 ggsave("gp1a.png", width = 9, height = 7)
@@ -152,13 +152,13 @@ ggplot(igrowth_com) +
   geom_line(aes(x = time_h, y = preds_gpc, color = "#00BFC4")) +
   labs(y = "relative OD") +
   scale_x_continuous("Time (in hours, flight)", 
-                     labels = c("5", "10", "15", "20")) +
+                     labels = c("5", "7.5", "10", "12.5", "15")) +
   scale_colour_manual(name = "", 
                       values = c("#F8766D" = "#F8766D", "#00BFC4" = "#00BFC4"), 
                       breaks = c("#F8766D", "#00BFC4"),
                       labels = c("Flight", "Ground \n (Average)")) +
-  annotate(geom = "text", x = 2.75, y = 0.585, label="y == 0.006*hour^1.696", color="#F8766D", size = 6, parse = T) +
-  annotate(geom = "text", x = 2.75, y = 0.55, label="y == 0.014*hour^1.319", color="#00BFC4", size = 6, parse = T) +
+  annotate(geom = "text", x = 2, y = 0.375, label="y == 0.003*hour^2.004", color="#F8766D", size = 6, parse = T) +
+  annotate(geom = "text", x = 2, y = 0.35, label="y == 0.013*hour^1.333", color="#00BFC4", size = 6, parse = T) +
   theme(text = element_text(size = 17))
 
 ggsave("gp1b.png", width = 9, height = 7)
@@ -173,7 +173,10 @@ jgm_m2 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Test for differences
                params = list(Asym ~ 1, xmid ~ type, scal ~ type),
                start = list(Asym = c(0.9), xmid = c(14, 14), scal = c(4.5, 4.5)),
                data = growth_longm)
+sink("jgm_m2.txt")
 summary(jgm_m2)$tTable
+confint(jgm_m2)
+sink()
 jgm_m2t <- summary(jgm_m2)$tTable
 
 growth_longm$preds <- predict(jgm_m2, data = growth_longm)
