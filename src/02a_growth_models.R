@@ -176,6 +176,8 @@ jgm_m2 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Test for differences
 sink("jgm_m2.txt")
 summary(jgm_m2)$tTable
 confint(jgm_m2)
+1/summary(jgm_m2)$tTable[4,1] - 1/(summary(jgm_m2)$tTable[4,1]+confint(jgm_m2)[5,1]) # Confint for diff in slope
+1/summary(jgm_m2)$tTable[4,1] - 1/(summary(jgm_m2)$tTable[4,1]+confint(jgm_m2)[5,2])
 sink()
 jgm_m2t <- summary(jgm_m2)$tTable
 
