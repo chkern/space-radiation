@@ -147,7 +147,7 @@ stargazer(ctd7, ctd8, ctd9, report = ('vcsp'),
           out = "rld2.html")
 
 rel_OD <- data.frame(relative_OD_imp1 = c(0.9, 0.925, 0.95))
-predict(rmd7, newdata = rel_OD, interval = "confidence")
+predict(rmd7, newdata = rel_OD, se.fit = T)
 
 mtd1 <- lm(delta_total ~ relative_OD_imp1, data = com_imp)
 mtd2 <- lm(delta_total ~ time_h, data = com_imp)
