@@ -96,6 +96,27 @@ sink("igm_gm.txt")
 summary(igm_gm)
 sink()
 
+igm_g1 <- nls(ground1 ~ I(c * exp(k*time_h)), # Ground 1 exponential
+              data = igrowth_com, 
+              start = list(c = 0.05, k = 0.1))
+sink("igm_g1.txt")
+summary(igm_g1)
+sink()
+
+igm_g2 <- nls(ground2 ~ I(c * exp(k*time_h)), # Ground 2 exponential
+              data = igrowth_com, 
+              start = list(c = 0.05, k = 0.1))
+sink("igm_g2.txt")
+summary(igm_g2)
+sink()
+
+igm_g3 <- nls(ground3 ~ I(c * exp(k*time_h)), # Ground 3 exponential
+              data = igrowth_com, 
+              start = list(c = 0.05, k = 0.1))
+sink("igm_g3.txt")
+summary(igm_g3)
+sink()
+
 igm_gmp <- nls(groundm ~ a * time_h^b, # Ground power
               data = igrowth_com, 
               start = list(a = 0.5, b = 2))
