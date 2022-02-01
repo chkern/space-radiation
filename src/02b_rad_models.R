@@ -72,6 +72,14 @@ stargazer(round(tab, 3), summary = FALSE, out = "wilcox.html")
 # Robust regressions
 ## y = g
 
+rm01 <- rlm(g ~ type, data = rad_long)
+rm02 <- rlm(g ~ time_h + type, data = rad_long)
+rm03 <- rlm(g ~ time_h*type, data = rad_long)
+
+ct01 <- coeftest(rm01, vcov = vcovHC)
+ct02 <- coeftest(rm02, vcov = vcovHC)
+ct03 <- coeftest(rm03, vcov = vcovHC)
+
 rm11 <- rlm(g ~ type, data = rad_long_1)
 rm12 <- rlm(g ~ time_h + type, data = rad_long_1)
 rm13 <- rlm(g ~ time_h*type, data = rad_long_1)
@@ -114,25 +122,25 @@ stargazer(ct31, ct32, ct33, report = ('vcsp'),
 
 ## y = delta (diff in g)
 
-rmd1 <- rlm(delta ~ relative_OD, data = com_small)
-rmd2 <- rlm(delta ~ time_h, data = com_small)
-rmd3 <- rlm(delta ~ time_h + relative_OD, data = com_small)
+rmd1 <- rlm(delta_g ~ relative_OD, data = com_small)
+rmd2 <- rlm(delta_g ~ time_h, data = com_small)
+rmd3 <- rlm(delta_g ~ time_h + relative_OD, data = com_small)
 
 coeftest(rmd1, vcov = vcovHC)
 coeftest(rmd2, vcov = vcovHC)
 coeftest(rmd3, vcov = vcovHC)
 
-rmd4 <- rlm(delta ~ relative_OD_imp1, data = com_imp)
-rmd5 <- rlm(delta ~ time_h, data = com_imp)
-rmd6 <- rlm(delta ~ time_h + relative_OD_imp1, data = com_imp)
+rmd4 <- rlm(delta_g ~ relative_OD_imp1, data = com_imp)
+rmd5 <- rlm(delta_g ~ time_h, data = com_imp)
+rmd6 <- rlm(delta_g ~ time_h + relative_OD_imp1, data = com_imp)
 
-coeftest(rmd4, vcov = vcovHC)
-coeftest(rmd5, vcov = vcovHC)
-coeftest(rmd6, vcov = vcovHC)
+ctd4 <- coeftest(rmd4, vcov = vcovHC)
+ctd5 <- coeftest(rmd5, vcov = vcovHC)
+ctd6 <- coeftest(rmd6, vcov = vcovHC)
 
-rmd7 <- rlm(delta ~ relative_OD_imp1, data = com_imp_2)
-rmd8 <- rlm(delta ~ time_h, data = com_imp_2)
-rmd9 <- rlm(delta ~ time_h + relative_OD_imp1, data = com_imp_2)
+rmd7 <- rlm(delta_g ~ relative_OD_imp1, data = com_imp_2)
+rmd8 <- rlm(delta_g ~ time_h, data = com_imp_2)
+rmd9 <- rlm(delta_g ~ time_h + relative_OD_imp1, data = com_imp_2)
 
 ctd7 <- coeftest(rmd7, vcov = vcovHC)
 ctd8 <- coeftest(rmd8, vcov = vcovHC)
@@ -148,20 +156,3 @@ stargazer(ctd7, ctd8, ctd9, report = ('vcsp'),
 
 rel_OD <- data.frame(relative_OD_imp1 = c(0.9, 0.925, 0.95))
 predict(rmd7, newdata = rel_OD, se.fit = T)
-
-mtd1 <- lm(delta_total ~ relative_OD_imp1, data = com_imp)
-mtd2 <- lm(delta_total ~ time_h, data = com_imp)
-mtd3 <- lm(delta_total ~ time_h + relative_OD_imp1, data = com_imp)
-
-# Time series
-
-ts_ctrl <- ts(rad_clean$ctrl_g, frequency = 786) # daily seasonality
-ts_exp <- ts(rad_clean$exp_g, frequency = 786)
-
-ts_ctrl_3 <- ts(rad_clean_3$ctrl_g, frequency = 786) # daily seasonality
-ts_exp_3 <- ts(rad_clean_3$exp_g, frequency = 786)
-
-decomp_ctrl <- decompose(ts_ctrl_3)
-plot(decomp_ctrl)
-decomp_exp <- decompose(ts_exp_3)
-plot(decomp_exp)

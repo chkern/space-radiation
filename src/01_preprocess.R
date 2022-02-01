@@ -10,16 +10,16 @@ library(WRS2)
 
 # Read data
 
-rad_raw <- read_excel("Supplementary File 2.xlsx", 
+rad_raw <- read_excel("data_new.xlsx", 
                       sheet = "rad")
 
-growth_flight_raw <- read_excel("Supplementary File 2.xlsx",
+growth_flight_raw <- read_excel("data_new.xlsx",
                                 sheet = "growth",
-                                range = cell_cols("AD:AG"))
+                                range = cell_cols("CV:CZ"))
 
-growth_ground_raw <- read_excel("Supplementary File 2.xlsx",
+growth_ground_raw <- read_excel("data_new.xlsx",
                                sheet = "growth",
-                               range = cell_cols("A:AC"))
+                               range = cell_cols("AW:CU"))
 
 summary(rad_raw)
 summary(growth_flight_raw)
@@ -28,27 +28,23 @@ summary(growth_ground_raw)
 # Clean
 
 rad_clean <- rad_raw %>% 
-  slice(1:(n()-4)) %>%
-  rename(time_sec = "time [sec]",
-         time_min = "time [min]",
-         time_h = "time [h]",
-         time_days = "time [days]",
+  slice(1:(n()-2)) %>%
+  select(-`...15`) %>%
+  rename(time_h = "runtime [h]",
+         time_d = "runtime [d]",
          ctrl_g = "g_cont",
          ctrl_gn = "g_cont_n",
          ctrl_gt = "g_cont_t",
          ctrl_gnt = "g_cont_nt",
-         ctrl_totaln = "ctrl_total_n",
          exp_g = "g_exp",
          exp_gn = "g_exp_n",
          exp_gt = "g_exp_t",
-         exp_gnt = "g_exp_nt",
-         exp_totaln = "exp_total_n") %>%
-  mutate(delta_cr = kader:::cuberoot(delta))
+         exp_gnt = "g_exp_nt")
 
 growth_flight_clean <- growth_flight_raw %>% 
   slice(2:(n())) %>%
-  rename(time_h = "...2",
-         flight = "...4") %>% 
+  rename(time_h = "...3",
+         flight = "...5") %>% 
   select(time_h, flight) %>%
   mutate(time_h = as.numeric(time_h),
          flight = as.numeric(flight))
@@ -57,7 +53,7 @@ min(growth_flight_clean$time_h[growth_flight_clean$flight >= 0.05])
 min(growth_flight_clean$time_h[growth_flight_clean$flight >= 0.95])
 
 rad_clean <- rad_clean %>% 
-  mutate(phase1 = ifelse(time_h <= 10, 1, 0),
+  mutate(phase1 = ifelse(time_h < 20, 1, 0),
          phase3 = ifelse(time_h >= 50, 1, 0),
          phases = case_when(phase1 == 1 ~ 1,
                             phase1 == 0 & phase3 == 0 ~ 2,
@@ -66,10 +62,10 @@ rad_clean <- rad_clean %>%
 growth_ground_clean <- growth_ground_raw %>% 
   slice(2:(n())) %>%
   rename(time_h = "...2",
-         ground1 = "...7",
-         ground2 = "...15",
-         ground3 = "...25",
-         groundm = "...28") %>% 
+         ground1 = "...9",
+         ground2 = "...37",
+         ground3 = "...47",
+         groundm = "...50") %>% 
   select(time_h, 
          ground1, ground2, ground3, groundm) %>%
   mutate(time_h = as.numeric(time_h),
@@ -103,7 +99,7 @@ growth_com <- growth_flight_clean %>%
 # Long format
 
 rad_long <- pivot_longer(rad_clean, 
-                         cols = ctrl_g:exp_totaln,
+                         cols = ctrl_g:exp_gnt,
                          names_to = c("type", ".value"), 
                          names_pattern = "(.+)_(.+)")
 
@@ -184,7 +180,7 @@ ggsave("p04.png", width = 11, height = 7)
 rad_long %>%
   ggplot(aes(x = time_h, y = log(g), color = type)) +
   geom_smooth(method = "loess", se = FALSE, span = 0.25) + 
-  geom_vline(xintercept = 10, linetype = "dotted") + 
+  geom_vline(xintercept = 20, linetype = "dotted") + 
   geom_vline(xintercept = 50, linetype = "dotted") +
   coord_cartesian(ylim=c(3.75, 4.5)) +
   labs(x = "Time (in hours)", y = "log(radiation)")  +
@@ -194,9 +190,9 @@ rad_long %>%
 ggsave("p05.png", width = 10, height = 7)
 
 rad_clean %>%
-  ggplot(aes(x = time_h, y = delta)) +
-  geom_smooth(method = "loess", se = TRUE, span = 0.7) +
-  geom_vline(xintercept = 10, linetype = "dotted") + 
+  ggplot(aes(x = time_h, y = delta_g)) +
+  geom_smooth(method = "loess", se = TRUE) +
+  geom_vline(xintercept = 20, linetype = "dotted") + 
   geom_vline(xintercept = 50, linetype = "dotted") +
   theme(legend.title = element_blank()) +
   ylab("g(ctrl) - g(exp)") +
@@ -212,8 +208,8 @@ rad_long %>%
 ggsave("p07.png", width = 10, height = 7)
 
 rad_long %>%
-  filter(time_h <= 24) %>%
-  ggplot(aes(x = time_h, y = total, color = type)) +
+  filter(time_h <= 20) %>%
+  ggplot(aes(x = time_h, y = gt, color = type)) +
   geom_line(linetype = "dashed") +
   geom_smooth(method = "lm", se = FALSE) +
   stat_poly_eq(formula = y ~ x, 
@@ -226,8 +222,8 @@ rad_long %>%
 ggsave("p08.png", width = 10, height = 7)
 
 rad_long %>%
-  filter(time_h >= 240) %>%
-  ggplot(aes(x = time_h, y = total, color = type)) +
+  filter(time_h >= 50) %>%
+  ggplot(aes(x = time_h, y = gt, color = type)) +
   geom_line(linetype = "dashed") +
   geom_smooth(method = "lm", se = FALSE) +
   stat_poly_eq(formula = y ~ x, 
@@ -242,7 +238,7 @@ ggsave("p09.png", width = 10, height = 7)
 com_small %>%
   ggplot() +
   geom_line(aes(x = time_h, y = relative_OD)) +
-  geom_vline(xintercept = 10, linetype = "dotted") + 
+  geom_vline(xintercept = 20, linetype = "dotted") + 
   geom_vline(xintercept = 50, linetype = "dotted") +
   ylab("Relative optical density") +
   xlab("Time (in hours)")
@@ -260,7 +256,7 @@ ggsave("p11.png", width = 10, height = 7)
 
 com_imp %>%
   filter(phases == 2) %>%
-  select(time_h, relative_OD_imp1, delta) %>%
+  select(time_h, relative_OD_imp1, delta_g) %>%
   ggpairs(lower = list(continuous = wrap("points", alpha = 0.3, size = 0.1)),
           diag = list(continuous = wrap("densityDiag")),
           upper = list(continuous = wrap("cor", stars = FALSE)),
@@ -270,7 +266,7 @@ ggsave("p12.png", width = 10, height = 7)
 
 com_imp %>%
   filter(phases == 2) %>%
-  select(time_h, relative_OD_imp1, delta_total) %>%
+  select(time_h, relative_OD_imp1, delta_g_t) %>%
   ggpairs(lower = list(continuous = wrap("points", alpha = 0.3, size = 0.1)),
           diag = list(continuous = wrap("densityDiag")),
           upper = list(continuous = wrap("cor", stars = FALSE)),
