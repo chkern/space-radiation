@@ -50,11 +50,14 @@ growth_flight_clean <- growth_flight_raw %>%
          flight = as.numeric(flight))
 
 min(growth_flight_clean$time_h[growth_flight_clean$flight >= 0.05])
+min(growth_flight_clean$time_h[growth_flight_clean$flight >= 0.5])
 min(growth_flight_clean$time_h[growth_flight_clean$flight >= 0.95])
+min(growth_flight_clean$time_h[growth_flight_clean$flight >= 0.99])
 
 rad_clean <- rad_clean %>% 
-  mutate(phase1 = ifelse(time_h < 20, 1, 0),
-         phase3 = ifelse(time_h >= 50, 1, 0),
+  mutate(phase1 = ifelse(time_h <= 20, 1, 0),
+         phase2 = ifelse(time_h >= 10 & time_h < 50, 1, 0),
+         phase3 = ifelse(time_h > 200, 1, 0),
          phases = case_when(phase1 == 1 ~ 1,
                             phase1 == 0 & phase3 == 0 ~ 2,
                             phase3 == 1 ~ 3))

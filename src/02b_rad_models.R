@@ -8,15 +8,15 @@ library(stargazer)
 
 load("rad.Rdata")
 
-rad_long_1 <- dplyr::filter(rad_long, rad_long$phases == 1)
-rad_long_2 <- dplyr::filter(rad_long, rad_long$phases == 2)
-rad_long_3 <- dplyr::filter(rad_long, rad_long$phases == 3)
+rad_long_1 <- dplyr::filter(rad_long, rad_long$phase1 == 1)
+rad_long_2 <- dplyr::filter(rad_long, rad_long$phase2 == 1)
+rad_long_3 <- dplyr::filter(rad_long, rad_long$phase3 == 1)
 
-rad_clean_1 <- dplyr::filter(rad_clean, rad_clean$phases == 1)
-rad_clean_2 <- dplyr::filter(rad_clean, rad_clean$phases == 2)
-rad_clean_3 <- dplyr::filter(rad_clean, rad_clean$phases == 3)
+rad_clean_1 <- dplyr::filter(rad_clean, rad_clean$phase1 == 1)
+rad_clean_2 <- dplyr::filter(rad_clean, rad_clean$phase2 == 1)
+rad_clean_3 <- dplyr::filter(rad_clean, rad_clean$phase3 == 1)
 
-com_imp_2 <- dplyr::filter(com_imp, com_imp$phases == 2)
+com_imp_2 <- dplyr::filter(com_imp, com_imp$phase2 == 1)
 
 # OLS 
 
