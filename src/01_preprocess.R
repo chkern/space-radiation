@@ -146,11 +146,24 @@ rad_long %>%
                aes(label=sprintf("%1.2f", ..y..), color = factor(type)),
                position=position_nudge(x = 0.5), size = 4) +
   facet_grid(~ phases, scales = "free") +
-  coord_cartesian(ylim = c(2.25, 6.25)) +
-  theme(legend.title = element_blank()) +
+  coord_cartesian(ylim = c(2.25, 8)) +
+  theme(legend.position = "none") +
   xlab("")
 
-ggsave("p01.png", width = 10, height = 7)
+ggsave("p01a.png", width = 10, height = 7)
+
+rad_long %>%
+  ggplot(aes(y = log(g), x = type, color = type)) +
+  geom_violin(draw_quantiles = 0.5) +
+  stat_summary(geom="text", fun = median,
+               aes(label=sprintf("%1.2f", ..y..), color = factor(type)),
+               position=position_nudge(x = 0.5), size = 4) +
+  facet_grid(~ phases, scales = "free") +
+  coord_cartesian(ylim = c(2.25, 8)) +
+  theme(legend.position = "none") +
+  xlab("")
+
+ggsave("p01b.png", width = 10, height = 7)
 
 rad_long %>%
 ggplot(aes(x = time_h, y = g, color = type)) +
@@ -184,7 +197,7 @@ rad_long %>%
   ggplot(aes(x = time_h, y = log(g), color = type)) +
   geom_smooth(method = "loess", se = FALSE, span = 0.25) + 
   geom_vline(xintercept = 20, linetype = "dotted") + 
-  geom_vline(xintercept = 50, linetype = "dotted") +
+  geom_vline(xintercept = 200, linetype = "dotted") +
   coord_cartesian(ylim=c(3.75, 4.5)) +
   labs(x = "Time (in hours)", y = "log(radiation)")  +
   scale_color_discrete(name = "",
@@ -196,7 +209,7 @@ rad_clean %>%
   ggplot(aes(x = time_h, y = delta_g)) +
   geom_smooth(method = "loess", se = TRUE) +
   geom_vline(xintercept = 20, linetype = "dotted") + 
-  geom_vline(xintercept = 50, linetype = "dotted") +
+  geom_vline(xintercept = 200, linetype = "dotted") +
   theme(legend.title = element_blank()) +
   ylab("g(ctrl) - g(exp)") +
   xlab("Time (in hours)")
