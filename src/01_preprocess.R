@@ -19,7 +19,7 @@ growth_flight_raw <- read_excel("data_new.xlsx",
 
 growth_ground_raw <- read_excel("data_new.xlsx",
                                sheet = "growth",
-                               range = cell_cols("AW:CU"))
+                               range = cell_cols("AW:CV"))
 
 summary(rad_raw)
 summary(growth_flight_raw)
@@ -68,14 +68,16 @@ growth_ground_clean <- growth_ground_raw %>%
          ground1 = "...9",
          ground2 = "...37",
          ground3 = "...47",
-         groundm = "...50") %>% 
+         groundm = "...50",
+         groundv = "...51") %>% 
   select(time_h, 
-         ground1, ground2, ground3, groundm) %>%
+         ground1, ground2, ground3, groundm, groundv) %>%
   mutate(time_h = as.numeric(time_h),
          ground1 = as.numeric(ground1),
          ground2 = as.numeric(ground2),
          ground3 = as.numeric(ground3),
-         groundm = as.numeric(groundm))
+         groundm = as.numeric(groundm),
+         groundv = as.numeric(groundv))
 
 # Join
 
@@ -198,7 +200,7 @@ rad_long %>%
   geom_smooth(method = "loess", se = FALSE, span = 0.25) + 
   geom_vline(xintercept = 20, linetype = "dotted") + 
   geom_vline(xintercept = 200, linetype = "dotted") +
-  coord_cartesian(ylim=c(3.75, 4.5)) +
+  coord_cartesian(ylim = c(3.75, 4.5)) +
   labs(x = "Time (in hours)", y = "log(radiation)")  +
   scale_color_discrete(name = "",
                        labels = c("Control", "Exp."))
@@ -210,9 +212,10 @@ rad_clean %>%
   geom_smooth(method = "loess", se = TRUE) +
   geom_vline(xintercept = 20, linetype = "dotted") + 
   geom_vline(xintercept = 200, linetype = "dotted") +
-  theme(legend.title = element_blank()) +
-  ylab("g(ctrl) - g(exp)") +
-  xlab("Time (in hours)")
+  ylab("Difference in radiation counts\n(control - experiment)") +
+  xlab("Time (in hours)") +
+  theme(legend.title = element_blank(),
+        text = element_text(size = 15))
 
 ggsave("p06.png", width = 10, height = 7)
 
@@ -251,13 +254,19 @@ rad_long %>%
 
 ggsave("p09.png", width = 10, height = 7)
 
-com_small %>%
+growth_com %>%
+  mutate_at(c("flight"), funs(lead), n = 12) %>%
+  filter(time_h <= 120) %>%
   ggplot() +
-  geom_line(aes(x = time_h, y = relative_OD)) +
+  geom_line(aes(x = time_h, y = flight), color = "#619CFF", size = 1) +
+  geom_line(aes(x = time_h, y = groundm), size = 1) +
+  geom_errorbar(aes(x = time_h, ymin = groundm-groundv, ymax = groundm+groundv), 
+                width = 0.1, alpha = 0.4) +
   geom_vline(xintercept = 20, linetype = "dotted") + 
   geom_vline(xintercept = 50, linetype = "dotted") +
   ylab("Relative optical density") +
-  xlab("Time (in hours)")
+  xlab("Time (in hours)") +
+  theme(text = element_text(size = 15))
 
 ggsave("p10.png", width = 10, height = 7)
 
