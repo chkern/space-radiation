@@ -215,7 +215,9 @@ rad_clean %>%
   ylab("Difference in radiation counts\n(control - experiment)") +
   xlab("Time (in hours)") +
   theme(legend.title = element_blank(),
-        text = element_text(size = 15))
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        text = element_text(size = 17))
 
 ggsave("p06.png", width = 10, height = 7)
 
@@ -255,18 +257,22 @@ rad_long %>%
 ggsave("p09.png", width = 10, height = 7)
 
 growth_com %>%
-  mutate_at(c("flight"), funs(lead), n = 12) %>%
+  mutate(groundm_s = lag(groundm, n = 12, default = 0),
+         groundv_s = lag(groundv, n = 12, default = 0)) %>%
   filter(time_h <= 120) %>%
   ggplot() +
   geom_line(aes(x = time_h, y = flight), color = "#619CFF", size = 1) +
-  geom_line(aes(x = time_h, y = groundm), size = 1) +
-  geom_errorbar(aes(x = time_h, ymin = groundm-groundv, ymax = groundm+groundv), 
+  geom_line(aes(x = time_h, y = groundm_s), size = 1) +
+  geom_errorbar(aes(x = time_h, ymin = groundm_s-groundv_s, ymax = groundm_s+groundv_s), 
                 width = 0.1, alpha = 0.4) +
   geom_vline(xintercept = 20, linetype = "dotted") + 
   geom_vline(xintercept = 50, linetype = "dotted") +
   ylab("Relative optical density") +
   xlab("Time (in hours)") +
-  theme(text = element_text(size = 15))
+  theme(text = element_text(size = 17),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),
+        plot.margin = unit(c(5.5, 10.5, 5.5, 5.5), "points"))
 
 ggsave("p10.png", width = 10, height = 7)
 
