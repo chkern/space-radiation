@@ -4,6 +4,7 @@ library(MASS)
 library(lmtest)
 library(nlme)
 library(stargazer)
+library(scales)
 
 load("rad.Rdata")
 
@@ -162,6 +163,23 @@ ggplot(igrowth_com) +
 
 ggsave("gp1a.png", width = 9, height = 7)
 
+ggplot(igrowth_com) +
+  geom_point(aes(x = time_h, y = flight, color = "#F8766D")) +
+  geom_point(aes(x = time_h, y = groundm, color = "#00BFC4")) +
+  labs(y = "relative OD") +
+  scale_x_continuous("Time (in hours, flight)", 
+                     labels = c("5", "7.5", "10", "12.5", "15")) +
+  scale_y_continuous(trans = log_trans(), 
+                     breaks = trans_breaks("log", function(x) exp(x)),
+                     labels = trans_format("log", math_format(e^.x))) +
+  scale_colour_manual(name = "", 
+                      values = c("#F8766D" = "#F8766D", "#00BFC4" = "#00BFC4"), 
+                      breaks = c("#F8766D", "#00BFC4"),
+                      labels = c("Flight", "Ground \n (Average)")) +
+  theme(text = element_text(size = 17))
+
+ggsave("gp1a_log.png", width = 9, height = 7)
+
 igrowth_com$preds_fp <- predict(igm_fp, igrowth_com)
 igrowth_com$preds_gp <- predict(igm_gmp, igrowth_com)
 igrowth_com$preds_gpc <- predict(igm_gmcp, igrowth_com)
@@ -212,6 +230,21 @@ ggplot(growth_longm) +
 
 ggsave("gp2.png", width = 9, height = 7)
 
+ggplot(growth_longm) +
+  geom_point(aes(x = time_h, y = value, color = type)) +
+  labs(y = "relative OD" , x = "Time (in hours)") +
+  scale_color_discrete(name = "",
+                       labels = c("Flight", "Ground \n (Average)")) +
+  scale_x_continuous("Time (in hours, flight)", 
+                     breaks = c(0, 10, 20, 30, 40),
+                     labels = c("5", "15", "25", "35", "45")) +
+  scale_y_continuous(trans = log_trans(), 
+                     breaks = trans_breaks("log", function(x) exp(x)),
+                     labels = trans_format("log", math_format(e^.x))) +
+  theme(text = element_text(size = 20))
+
+ggsave("gp2_log.png", width = 9, height = 7)
+
 # Full [logistic] growth (flight vs. ground control 1)
 
 jgm_g11 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Joint model
@@ -239,6 +272,21 @@ ggplot(growth_long1) +
   theme(text = element_text(size = 20))
 
 ggsave("gp3.png", width = 9, height = 7)
+
+ggplot(growth_long1) +
+  geom_point(aes(x = time_h, y = value, color = type)) +
+  labs(y = "relative OD" , x = "Time (in hours)") +
+  scale_color_discrete(name = "",
+                       labels = c("Flight", "Ground \n (1)")) +
+  scale_x_continuous("Time (in hours, flight)", 
+                     breaks = c(0, 10, 20, 30, 40),
+                     labels = c("5", "15", "25", "35", "45")) +
+  scale_y_continuous(trans = log_trans(), 
+                     breaks = trans_breaks("log", function(x) exp(x)),
+                     labels = trans_format("log", math_format(e^.x))) +
+  theme(text = element_text(size = 20))
+
+ggsave("gp3_log.png", width = 9, height = 7)
 
 # Full [logistic] growth (flight vs. ground control 2)
 
@@ -268,6 +316,21 @@ ggplot(growth_long2) +
 
 ggsave("gp4.png", width = 9, height = 7)
 
+ggplot(growth_long2) +
+  geom_point(aes(x = time_h, y = value, color = type)) +
+  labs(y = "relative OD" , x = "Time (in hours)") +
+  scale_color_discrete(name = "",
+                       labels = c("Flight", "Ground \n (2)")) +
+  scale_x_continuous("Time (in hours, flight)", 
+                     breaks = c(0, 10, 20, 30, 40),
+                     labels = c("5", "15", "25", "35", "45")) +
+  scale_y_continuous(trans = log_trans(), 
+                     breaks = trans_breaks("log", function(x) exp(x)),
+                     labels = trans_format("log", math_format(e^.x))) +
+  theme(text = element_text(size = 20))
+
+ggsave("gp4_log.png", width = 9, height = 7)
+
 # Full [logistic] growth (flight vs. ground control 3)
 
 jgm_g31 <- gnls(value ~ SSlogis(time_h, Asym, xmid, scal), # Joint model
@@ -295,6 +358,21 @@ ggplot(growth_long3) +
   theme(text = element_text(size = 20))
 
 ggsave("gp5.png", width = 9, height = 7)
+
+ggplot(growth_long3) +
+  geom_point(aes(x = time_h, y = value, color = type)) +
+  labs(y = "relative OD" , x = "Time (in hours)") +
+  scale_color_discrete(name = "",
+                       labels = c("Flight", "Ground \n (3)")) +
+  scale_x_continuous("Time (in hours, flight)", 
+                     breaks = c(0, 10, 20, 30, 40),
+                     labels = c("5", "15", "25", "35", "45")) +
+  scale_y_continuous(trans = log_trans(), 
+                     breaks = trans_breaks("log", function(x) exp(x)),
+                     labels = trans_format("log", math_format(e^.x))) +
+  theme(text = element_text(size = 20))
+
+ggsave("gp5_log.png", width = 9, height = 7)
 
 n <- cbind(nrow(growth_longm), nrow(growth_long1), nrow(growth_long2), nrow(growth_long3))
 aic <- round(cbind(AIC(jgm_m2), AIC(jgm_g12), AIC(jgm_g22), AIC(jgm_g32)), 3)
